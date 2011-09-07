@@ -1,4 +1,4 @@
-#include <v8.h>
+#include <v8.h/
 #include <node.h>
 
 using namespace v8;
@@ -9,6 +9,32 @@ typedef struct {
     int n;
     Persistent<Function> cb;
 } fac_baton_t;
+
+class Apple: ObjectWrap {
+    private:
+        bool eaten;
+    public:
+        Apple() {
+            eaten = false;
+        }
+
+        ~Apple() {
+        }
+
+        static Handle<Value> New(const Arguments& args) {
+            HandleScope scope;
+            Apple* apple = new Apple();
+            apple->Wrap(args.This());
+            return args.This();
+        }
+        static Handle<Value> Eat(const Arguments& args) {
+            HandleScope scope;
+            Apple* apple = ObjectWrap::Unwrap<Apple>(args.This());
+            apple->eaten = true;
+            return True();
+        }
+};
+
 
 int EIO_Fac(eio_req *req) {
     fac_baton_t *closure = static_cast<fac_baton_t *>(req->data);
@@ -124,8 +150,24 @@ void Initialize(Handle<Object> target) {
     NODE_SET_METHOD(target, "functionWithCallback", FunctionWithCallback);
 
     //a async function
-
     NODE_SET_METHOD(target, "asyncFunction", AsyncFunction);
+
+    //prototyping
+    Local<FunctionTemplate> t2 = FunctionTemplate::New();
+    Local<Template> proto_t = t2->PrototypeTemplate();
+    proto_t->Set(String::New("wheeles"), Number::New(2));
+
+    target->Set(String::NewSymbol("Bike"), t2->GetFunction());
+
+    //Object wrapping
+
+    Local<FunctionTemplate> apple_t = FunctionTemplate::New(Apple::New);
+    apple_t->InstanceTemplate()->SetInternalFieldCount(1);
+    apple_t->SetClassName(String::NewSymbol("Apple"));
+
+    NODE_SET_PROTOTYPE_METHOD(apple_t, "eat", Apple::Eat);
+
+    target->Set(String::NewSymbol("Apple"), apple_t->GetFunction());
 
 }
 

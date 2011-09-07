@@ -18,3 +18,17 @@ binding.functionWithCallback (data) ->
 
 binding.asyncFunction 10, (fac) ->
   console.log "10!: " + fac
+
+Bike = binding.Bike
+Bike.prototype.print = ->
+  console.log @wheeles
+
+bike = new Bike()
+bike.print()
+
+Apple = binding.Apple
+apple = new Apple()
+console.log "Apple eaten? " + apple.eat()
+console.log apple
+
+console.log apple
